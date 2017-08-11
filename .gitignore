@@ -1,0 +1,11 @@
+node_modules
+wp/node_modules
+.vscode
+dist/*
+keys
+npm-debug.log
+.DS_Store
+*.txt
+target/
+test/
+*.bk.*

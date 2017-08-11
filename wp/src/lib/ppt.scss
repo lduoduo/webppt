@@ -1,0 +1,138 @@
+.ppt {
+    background-color: #222;
+    color: #efeded;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    &.edit{
+        cursor: url('../img/edit.png'), default;
+    }
+    .page-wrapper {
+        width: 100%;
+        height: 100%;
+    }
+    .page {
+        width: 100%;
+        height: 100%;
+        display: none;
+        font-size: 25px;
+        text-align: center;
+        position: relative;
+        &.curr {
+            display: block;
+        }
+    }
+    h2 {
+        font-size: 2em;
+    }
+    h3 {
+        font-size: 1.5em;
+    }
+}
+
+// 页面内容块样式
+section {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+// 代码区块样式
+.ppt code {
+    color: #2196F3;
+}
+
+.ppt pre {
+    display: block;
+    position: relative;
+    width: 90%;
+    max-width: 900px;
+    margin: 20px auto;
+    text-align: left;
+    font-size: 0.8em;
+    font-family: monospace;
+    line-height: 1.2em;
+    word-wrap: break-word;
+    box-shadow: 0px 0px 6px rgba(0, 0, 0, 0.3);
+    code {
+        display: block;
+        padding: 0.5em;
+        background: #3F3F3F;
+        color: #DCDCDC;
+    }
+}
+
+// 箭头样式
+.ppt aside.controls {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    font-size: 10px;
+    display: block;
+    color: #2196F3;
+    z-index: 9999;
+    a {
+        position: relative;
+        width: 3.6em;
+        height: 3.6em;
+        display: inline-block;
+        cursor: pointer;
+        opacity: 0.4;
+        transition: all 0.3s linear;
+        &.disabled {
+            opacity: 0;
+        }
+        &:hover {
+            opacity: 1;
+            &.disabled {
+                opacity: 0;
+            }
+        }
+    }
+    .edit {
+        background: url('../img/edit.png') center no-repeat;
+        background-size: 90%;
+        margin-right: 10px;
+    }
+    .arrow {
+        &:before,
+        &:after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 2.6em;
+            height: 0.5em;
+            border-radius: 0.25em;
+            background-color: currentColor;
+            transition: all 0.15s ease, background-color 0.8s ease;
+            -webkit-transform-origin: 0.2em 50%;
+            transform-origin: 0.2em 50%;
+            will-change: transform;
+        }
+        &:before {
+            transform: translateX(0.5em) translateY(1.55em) rotate(45deg);
+        }
+        &:after {
+            transform: translateX(0.5em) translateY(1.55em) rotate(-45deg);
+        }
+    }
+    .right {
+        transform: rotate(180deg);
+    }
+}
+
+// 幻灯片标注样式
+canvas.pageEditor{
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 10;
+    display: none;
+    &.active{
+        display: block;
+    }
+}

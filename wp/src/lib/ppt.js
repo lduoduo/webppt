@@ -53,7 +53,7 @@ window.ppt = {
     },
     // 发送回调
     emit(type, name, data) {
-        if (!type) return
+        type = type || 'listeners'
         this[type] && this[type][name] && this[type][name](data)
     },
     // 初始化环境
@@ -77,9 +77,17 @@ window.ppt = {
         this.initPageEvent()
         this.initCanvas()
         this.initProgressBar()
+
+        // 监听hash变动
+        window.onhashchange = this.hashChange.bind(this);
+
+        // 回调ready
+        this.emit('listeners', 'ready')
     },
     // 初始化控制UI
     initControl() {
+        this.dom.wrapper = $('.ppt #webppt')
+
         let control = this.dom.control = document.createElement('aside')
         control.className = 'ppt-controls'
         control.innerHTML = this._tpl.arrow
@@ -96,7 +104,7 @@ window.ppt = {
     // 键盘事件注册
     initKeyEvent() {
         document.body.addEventListener('keydown', (e) => {
-            // console.log(e)
+            console.log(e)
             let key = $('.page.curr').id;
             let code = e.keyCode;
             this.onKeyEvent(key, code)
@@ -152,6 +160,11 @@ window.ppt = {
         if (keycode === 66) {
             return this.pageEdit()
         }
+
+        // 默认事件: 开关全局预览模式
+        if (keycode === 79) {
+            return this.pageOverView()
+        }
     },
     // 自定义键盘事件
     onKeydown(pageid, keycode, cb) {
@@ -181,6 +194,21 @@ window.ppt = {
             this.pageEdit()
         }
     },
+    // 翻页：目标页索引值, 默认第一页
+    page(index = 1) {
+        let curr = $('.page.curr')
+        let id = curr.id.match(/\d+/)[0]
+
+        let target = $(`.page#page${index}`)
+
+        // 逆向入场
+        if (index < id) {
+            return this.animate(target, curr, false)
+        }
+
+        // 正向入场
+        return this.animate(target, curr, true)
+    },
     // 翻页：上一页
     pagePrev() {
         let curr = $('.page.curr')
@@ -189,38 +217,7 @@ window.ppt = {
 
         if (!prev) return
 
-        let pPrev = prev.nextElementSibling
-
-        if (next) {
-            next.classList.toggle('next', false)
-        }
-        if (pPrev) {
-            pPrev.classList.toggle('prev', true)
-        }
-
-        // 出场动画
-        curr.classList.toggle('ani-out-next', true)
-        var outHandler = function () {
-            console.log('ani-out end')
-            curr.classList.toggle('ani-out-next', false)
-            curr.classList.toggle('curr', false)
-            curr.classList.toggle('prev', false)
-            curr.classList.toggle('next', true)
-            curr.removeEventListener('animationend', outHandler)
-        }
-        curr.addEventListener('animationend', outHandler)
-
-        prev.classList.toggle('prev', false)
-        prev.classList.toggle('curr', true)
-
-        // 入场动画
-        prev.classList.toggle('ani-in-prev', true)
-        var inHandler = function () {
-            console.log('ani-in end')
-            prev.classList.toggle('ani-in-prev', false)
-            prev.removeEventListener('animationend', inHandler)
-        }
-        prev.addEventListener('animationend', inHandler)
+        this.animate(prev, curr, false)
 
         // 箭头样式调整
         this.dom.control.left.classList.toggle('disabled', !prev.previousElementSibling)
@@ -234,39 +231,7 @@ window.ppt = {
 
         if (!next) return
 
-        let nNext = next.nextElementSibling
-
-        if (prev) {
-            prev.classList.toggle('prev', false)
-        }
-        if (nNext) {
-            nNext.classList.toggle('next', true)
-        }
-
-        // 出场动画
-        curr.classList.toggle('ani-out-prev', true)
-        var outHandler = function () {
-            console.log('ani-out end')
-            curr.classList.toggle('ani-out-prev', false)
-            curr.classList.toggle('curr', false)
-            curr.classList.toggle('prev', true)
-            curr.classList.toggle('next', false)
-            curr.removeEventListener('animationend', outHandler)
-        }
-        curr.addEventListener('animationend', outHandler)
-
-        next.classList.toggle('curr', true)
-        next.classList.toggle('next', false)
-        next.classList.toggle('prev', false)
-
-        // 入场动画
-        next.classList.toggle('ani-in-next', true)
-        var inHandler = function () {
-            console.log('ani-in end')
-            next.classList.toggle('ani-in-next', false)
-            next.removeEventListener('animationend', inHandler)
-        }
-        next.addEventListener('animationend', inHandler)
+        this.animate(next, curr, true)
 
         // 箭头样式调整
         this.dom.control.right.classList.toggle('disabled', !next.nextElementSibling)
@@ -283,6 +248,41 @@ window.ppt = {
 
         // 否则关闭绘图模式
         this.disableDraw()
+    },
+    // 全局预览
+    pageOverView(){
+        this.dom.wrapper.classList.toggle('overview')
+    },
+    /**
+     * 退场入场动画
+     * @param {dom} inDom 入场节点
+     * @param {dom} outDom 退场节点
+     * @param {boolean} isForwards 正向还是逆向, 默认正向
+     */
+    animate(inDom, outDom, isForwards = true) {
+
+        let inAnimate = isForwards ? 'ani-in-next' : 'ani-in-prev'
+        let outAnimate = isForwards ? 'ani-out-prev' : 'ani-out-next'
+
+        // 退场动画
+        outDom.classList.toggle(outAnimate, true)
+        var outHandler = function () {
+            console.log('ani-out end')
+            outDom.classList.toggle(outAnimate, false)
+            outDom.classList.toggle('curr', false)
+            outDom.removeEventListener('animationend', outHandler)
+        }
+        outDom.addEventListener('animationend', outHandler)
+
+        // 入场动画
+        inDom.classList.toggle('curr', true)
+        inDom.classList.toggle(inAnimate, true)
+        var inHandler = function () {
+            console.log('ani-in end')
+            inDom.classList.toggle(inAnimate, false)
+            inDom.removeEventListener('animationend', inHandler)
+        }
+        inDom.addEventListener('animationend', inHandler)
     },
     // 开启绘图模式
     enableDraw() {
@@ -313,6 +313,12 @@ window.ppt = {
         canvas.onmouseup = null
         canvas.onmouseout = null
         canvas.onmousemove = null
+    },
+    // url hash变动监听
+    hashChange(e){
+        console.log(e)
+        let index = location.hash.replace('#','')
+        this.page(index)
     }
 }
 

@@ -22,7 +22,7 @@ const srcPath = path.resolve(__dirname, "src/app");
 const distPath = path.resolve(__dirname, "../dist");
 
 /** 服务器上的静态资源公开目录 */
-const publicPath = '..';
+const publicPath = '/webppt/';
 /** 生成脚本样式之后的文件存放的路径前缀 */
 const preStatic = '';
 
@@ -287,6 +287,9 @@ pages.forEach(function (pathname) {
     // var destname = pathname.substring((pathname.lastIndexOf('/')), pathname.lastIndexOf('.'));
     var destname = pathname; // pathname.substring(0, pathname.lastIndexOf('/'));
     var foldername = preStatic ? preStatic + '/' + destname : destname;
+
+    // 重新改造一下destname
+    destname = destname.match(/(\w+)\//)[1] + '/' + 'index'
     console.log('destpath----->%s', destname);
     var conf = {
         //

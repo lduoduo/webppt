@@ -1,3 +1,5 @@
+@import './normal.scss';
+// body设置
 .ppt {
     // background-color: #222;
     background: #485254 url('../img/bg.png') no-repeat;
@@ -11,32 +13,6 @@
     &.edit {
         cursor: url('../img/edit.png'), default;
     }
-    .page-wrapper {
-        width: 100%;
-        height: 100%;
-        perspective: 600px;
-    }
-    .page {
-        width: 100%;
-        height: 100%;
-        display: none;
-        font-size: 25px;
-        text-align: center;
-        // position: relative;
-        // transition: all 0.5s linear;
-        position: absolute;
-        top: 0;
-        left: 0;
-        &.curr {
-            display: block;
-            &.ani-in-next{
-                transform: rotateY(90deg);
-            }
-            &.ani-in-prev{
-                transform: rotateY(-90deg);
-            }
-        }
-    }
     h1 {
         font-size: 3em;
     }
@@ -48,6 +24,33 @@
     }
     ul {
         text-align: left;
+    }
+}
+
+// 页面包裹头样式
+.ppt .page-wrapper {
+    width: 100%;
+    height: 100%;
+    perspective: 600px;
+}
+
+.ppt .page {
+    width: 100%;
+    height: 100%;
+    display: none;
+    font-size: 25px;
+    text-align: center; 
+    position: absolute;
+    top: 0;
+    left: 0;
+    &.curr {
+        display: block;
+        &.ani-in-next {
+            transform: rotateY(90deg);
+        }
+        &.ani-in-prev {
+            transform: rotateY(-90deg);
+        }
     }
 }
 
@@ -66,8 +69,7 @@ section {
 
 .ppt pre {
     display: block;
-    position: relative;
-    // width: 90%;
+    position: relative; // width: 90%;
     max-width: 900px;
     margin: 20px auto;
     text-align: left;
@@ -85,7 +87,7 @@ section {
 }
 
 // 箭头样式
-.ppt aside.controls {
+.ppt aside.ppt-controls {
     position: fixed;
     bottom: 30px;
     right: 30px;
@@ -144,8 +146,8 @@ section {
     }
 }
 
-// 幻灯片标注样式
-canvas.pageEditor {
+// 幻灯片绘图样式
+.ppt canvas.ppt-pageEditor {
     width: 100vw;
     height: 100vh;
     position: fixed;
@@ -158,16 +160,31 @@ canvas.pageEditor {
     }
 }
 
-.ani-in-prev{
-    animation: in-prev 1s  1s linear forwards;
+// 进度条样式
+.ppt .ppt-progress {
+    height: 5px;
+    width: 5%;
+    background: green;
+    transition: all 0.5s ease-in-out;
+    position: fixed;
+    bottom: 0;
+    left: 0;
 }
-.ani-in-next{
+
+// 出场入场动画效果
+.ani-in-prev {
+    animation: in-prev 1s 1s linear forwards;
+}
+
+.ani-in-next {
     animation: in-next 1s 1s linear forwards;
 }
-.ani-out-prev{
+
+.ani-out-prev {
     animation: out-prev 1s linear forwards;
 }
-.ani-out-next{
+
+.ani-out-next {
     animation: out-next 1s linear forwards;
 }
 
@@ -176,7 +193,7 @@ canvas.pageEditor {
     0% {
         transform: rotateY(-90deg);
     }
-    50%{
+    50% {
         transform: rotateY(-45deg);
     }
     100% {
@@ -188,7 +205,7 @@ canvas.pageEditor {
     0% {
         transform: rotateY(90deg);
     }
-    50%{
+    50% {
         transform: rotateY(45deg);
     }
     100% {
@@ -200,7 +217,7 @@ canvas.pageEditor {
     0% {
         transform: rotateY(0);
     }
-    50%{
+    50% {
         transform: rotateY(45deg);
     }
     100% {
@@ -212,7 +229,7 @@ canvas.pageEditor {
     0% {
         transform: rotateY(0);
     }
-    50%{
+    50% {
         transform: rotateY(-45deg);
     }
     100% {

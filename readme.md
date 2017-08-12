@@ -17,10 +17,13 @@
 ### 开发步骤
 1. 引入脚本 `ppt.js`, 样式 `ppt.css`
 2. 按照下面的流程引入标签
+3. 静态文件托管服务: node server.js
 
 ### 引用标签详解
 
-1. 普通新幻灯片需要如下包裹头
+1. html里body需要加上类名`ppt`
+
+2. 普通新幻灯片需要如下包裹头
 ```
 // html
 <div class="page">
@@ -36,7 +39,8 @@
 ppt.init()
 ```
 
-2. markdown文件插入格式(需要开启webpack编译)
+3. markdown文件插入格式(需要开启webpack编译)
+    + npm run dev
 ```
 // html
 <div class="page" name="markdown" data-template="markdown.md" ></div>
@@ -45,7 +49,8 @@ ppt.init()
 ppt.markdown({
     'markdown.md': require('./markdown/markdown.md')
 })
+ppt.init()
 ```
 
 ### 目前问题
-1. 转场动画不太友好，浏览器重绘问题
+1. mac chrome转场动画不太友好，浏览器重绘问题

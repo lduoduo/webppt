@@ -37,7 +37,7 @@ window.ppt = {
     domEvents: {},
     dom: {},
     _tpl: {
-        arrow: '<aside class="controls"><a class="edit"></a><a class="arrow left"></a><a class="arrow right"></a></aside>'
+        arrow: '<a class="edit"></a><a class="arrow left"></a><a class="arrow right"></a>'
     },
     /**
      * 嵌入markdown内容
@@ -50,7 +50,6 @@ window.ppt = {
             let selector = `[name=markdown][data-template="${i}"]`
             $(selector).innerHTML = `<section>${obj[i]}</section>`
         }
-        this.init()
     },
     // 发送回调
     emit(type, name, data) {
@@ -65,9 +64,7 @@ window.ppt = {
 
         // 如果ppt张数多余1，显示箭头
         if (doms.length > 1) {
-            let control = document.createElement('div')
-            control.innerHTML = this._tpl.arrow
-            document.body.appendChild(control)
+            this.initControl()
         }
 
         // 给每个page加个id
@@ -79,15 +76,21 @@ window.ppt = {
         this.initKeyEvent()
         this.initPageEvent()
         this.initCanvas()
+        this.initProgressBar()
+    },
+    // 初始化控制UI
+    initControl() {
+        let control = this.dom.control = document.createElement('aside')
+        control.className = 'ppt-controls'
+        control.innerHTML = this._tpl.arrow
+        document.body.appendChild(control)
+
+        this.dom.control.left = $('.ppt-controls .left')
+        this.dom.control.right = $('.ppt-controls .right')
+        this.dom.control.addEventListener('click', this.clickControl.bind(this))
     },
     // 鼠标事件注册
     initEvent() {
-        this.dom.control = $('.controls')
-        if (this.dom.control) {
-            this.dom.control.left = $('.controls .left')
-            this.dom.control.right = $('.controls .right')
-            this.dom.control.addEventListener('click', this.clickControl.bind(this))
-        }
 
     },
     // 键盘事件注册
@@ -98,6 +101,36 @@ window.ppt = {
             let code = e.keyCode;
             this.onKeyEvent(key, code)
         });
+    },
+    // 注册page转场事件
+    initPageEvent() {
+        var mo = new MutationObserver(this.onPageEvent.bind(this));
+        var $dom = document.querySelector('#webppt');
+        var options = {
+            'childList': true,
+            'attributes': true,
+            'subtree': true
+        };
+        mo.observe($dom, options);
+    },
+    // 初始化canvas环境
+    initCanvas() {
+        let canvas = this.dom.canvas = document.createElement('canvas')
+        canvas.className = "ppt-pageEditor"
+        canvas.width = window.screen.availWidth;
+        canvas.height = window.screen.availHeight;
+
+        document.body.appendChild(canvas)
+
+        cvs.init(canvas)
+    },
+    // 初始化进度条
+    initProgressBar() {
+        let progress = this.dom.progress = document.createElement('p')
+        progress.className = "ppt-progress"
+        progress.width = 100
+
+        document.body.appendChild(progress)
     },
     // 键盘事件回调
     onKeyEvent(pageid, keycode) {
@@ -125,17 +158,6 @@ window.ppt = {
         if (!pageid || !keycode || !cb) return
         this.keyEvents[`${pageid}_${keycode}`] = cb
     },
-    // 注册page转场事件
-    initPageEvent() {
-        var mo = new MutationObserver(this.onPageEvent.bind(this));
-        var $dom = document.querySelector('#webppt');
-        var options = {
-            'childList': true,
-            'attributes': true,
-            'subtree': true
-        };
-        mo.observe($dom, options);
-    },
     // page转场回调
     onPageEvent(e) {
         console.log(e)
@@ -144,17 +166,6 @@ window.ppt = {
     onPage(pageid, cb) {
         if (!pageid || !cb) return
         this.domEvents[`${pageid}`] = cb
-    },
-    // 初始化canvas环境
-    initCanvas() {
-        let canvas = this.dom.canvas = document.createElement('canvas')
-        canvas.className = "pageEditor"
-        canvas.width = window.screen.availWidth;
-        canvas.height = window.screen.availHeight;
-
-        document.body.appendChild(canvas)
-
-        cvs.init(canvas)
     },
     // 右下角控制事件
     clickControl(e) {
@@ -261,7 +272,7 @@ window.ppt = {
         this.dom.control.right.classList.toggle('disabled', !next.nextElementSibling)
         this.dom.control.left.classList.toggle('disabled', false)
     },
-    // 页面标注
+    // 页面绘图
     pageEdit() {
         this.dom.canvas.classList.toggle('active')
         document.body.classList.toggle('edit')

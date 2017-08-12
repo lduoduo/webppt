@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "cd wp && npm run dev",
+    "dev": "node clean.js && cd wp && npm run dev",
     "sdk": "cd wp && npm run sdk"
   },
   "repository": {
@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/lduoduo/webppt#readme",
   "dependencies": {
+    "fs-extra": "^4.0.1",
     "koa": "^1.2.4",
     "koa-cors": "0.0.16",
     "koa-mount": "^1.3.0",

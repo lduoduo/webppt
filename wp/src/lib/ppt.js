@@ -1,6 +1,21 @@
 /**
  * ppt演示框架源码
  * created by lduoduo on 2017-08-11
+ * last updated by lduoduo on 2017-08-12
+ * 
+ * 说明:
+ * 1. 键盘事件:
+ *      - 左右箭头切换上一页、下一页
+ *      - 字母e: 开启、关闭绘图模式
+ *      - 字母n: 开启、关闭注释弹框
+ *      - 字母o: 开启、关闭全局预览模式
+ * 2. 回调注册:
+ *      - ppt.on('ready', cb) // ppt准备就绪的回调
+ *      - ppt.on('before')
+ * 3. 自定义键盘事件注册:
+ *      - ppt.onKeydown('pageid','keycode',cb) // 页面id, 键盘code, 回调
+ * 4. 自定义转场事件回调
+ *      - ppt.onPage('pageid', cb) // 页面id, 回调(回调里面会传递参数 in / out)
  */
 // 引入样式文件
 import './ppt.scss';
@@ -8,11 +23,18 @@ import './ppt.scss';
 function $(selector) {
     return document.querySelector(selector)
 }
+
 function $$(selector) {
     return document.querySelectorAll(selector)
 }
 
 window.ppt = {
+    // 回调监听
+    listeners: {},
+    // 自定义键盘事件
+    keyEvents: {},
+    // 自定义dom事件
+    domEvents: {},
     dom: {},
     _tpl: {
         arrow: '<aside class="controls"><a class="edit"></a><a class="arrow left"></a><a class="arrow right"></a></aside>'
@@ -29,8 +51,11 @@ window.ppt = {
             $(selector).innerHTML = `<section>${obj[i]}</section>`
         }
         this.init()
-        this.initEvent()
-        this.initCanvas()
+    },
+    // 发送回调
+    emit(type, name, data) {
+        if (!type) return
+        this[type] && this[type][name] && this[type][name](data)
     },
     // 初始化环境
     init() {
@@ -44,13 +69,78 @@ window.ppt = {
             control.innerHTML = this._tpl.arrow
             document.body.appendChild(control)
         }
+
+        // 给每个page加个id
+        doms.forEach((item, index) => {
+            item.id = `page${index + 1}`
+        })
+
+        this.initEvent()
+        this.initKeyEvent()
+        this.initPageEvent()
+        this.initCanvas()
     },
-    // 事件注册
+    // 鼠标事件注册
     initEvent() {
         this.dom.control = $('.controls')
         this.dom.control.left = $('.controls .left')
         this.dom.control.right = $('.controls .right')
         this.dom.control.addEventListener('click', this.clickControl.bind(this))
+    },
+    // 键盘事件注册
+    initKeyEvent() {
+        document.body.addEventListener('keydown', (e) => {
+            // console.log(e)
+            let key = $('.page.curr').id;
+            let code = e.keyCode;
+            this.onKeyEvent(key, code)
+        });
+    },
+    // 键盘事件回调
+    onKeyEvent(pageid, keycode) {
+        // 如果有自定义事件, 优先自定义事件
+        let userEvent = `${pageid}_${keycode}`
+        if (this.keyEvents[userEvent]) {
+            return this.emit('keyEvents', userEvent);
+        }
+
+        // 默认事件: 左箭头
+        if (keycode === 37) {
+            return this.pagePrev()
+        }
+        // 默认事件: 右箭头
+        if (keycode === 39) {
+            return this.pageNext()
+        }
+        // 默认事件: 开关绘图模式
+        if (keycode === 66) {
+            return this.pageEdit()
+        }
+    },
+    // 自定义键盘事件
+    onKeydown(pageid, keycode, cb) {
+        if (!pageid || !keycode || !cb) return
+        this.keyEvents[`${pageid}_${keycode}`] = cb
+    },
+    // 注册page转场事件
+    initPageEvent() {
+        var mo = new MutationObserver(this.onPageEvent.bind(this));
+        var $dom = document.querySelector('#webppt');
+        var options = {
+            'childList': true,
+            'attributes': true,
+            'subtree': true
+        };
+        mo.observe($dom, options);
+    },
+    // page转场回调
+    onPageEvent(e) {
+        console.log(e)
+    },
+    // 自定义page转场事件
+    onPage(pageid, cb) {
+        if (!pageid || !cb) return
+        this.domEvents[`${pageid}`] = cb
     },
     // 初始化canvas环境
     initCanvas() {
@@ -63,9 +153,10 @@ window.ppt = {
 
         cvs.init(canvas)
     },
-    // 箭头事件
+    // 右下角控制事件
     clickControl(e) {
         let dom = e.target
+        if (dom.classList.contains('disabled')) return
         if (dom.classList.contains('left')) {
             this.pagePrev()
         }
@@ -80,9 +171,42 @@ window.ppt = {
     pagePrev() {
         let curr = $('.page.curr')
         let prev = curr.previousElementSibling
+        let next = curr.nextElementSibling
 
-        curr.classList.toggle('curr', false)
+        if (!prev) return
+
+        let pPrev = prev.nextElementSibling
+
+        if (next) {
+            next.classList.toggle('next', false)
+        }
+        if (pPrev) {
+            pPrev.classList.toggle('prev', true)
+        }
+
+        // 出场动画
+        curr.classList.toggle('ani-out-next', true)
+        var outHandler = function () {
+            console.log('ani-out end')
+            curr.classList.toggle('ani-out-next', false)
+            curr.classList.toggle('curr', false)
+            curr.classList.toggle('prev', false)
+            curr.classList.toggle('next', true)
+            curr.removeEventListener('animationend', outHandler)
+        }
+        curr.addEventListener('animationend', outHandler)
+
+        prev.classList.toggle('prev', false)
         prev.classList.toggle('curr', true)
+
+        // 入场动画
+        prev.classList.toggle('ani-in-prev', true)
+        var inHandler = function () {
+            console.log('ani-in end')
+            prev.classList.toggle('ani-in-prev', false)
+            prev.removeEventListener('animationend', inHandler)
+        }
+        prev.addEventListener('animationend', inHandler)
 
         // 箭头样式调整
         this.dom.control.left.classList.toggle('disabled', !prev.previousElementSibling)
@@ -91,10 +215,44 @@ window.ppt = {
     // 翻页：下一页
     pageNext() {
         let curr = $('.page.curr')
+        let prev = curr.previousElementSibling
         let next = curr.nextElementSibling
 
-        curr.classList.toggle('curr', false)
+        if (!next) return
+
+        let nNext = next.nextElementSibling
+
+        if (prev) {
+            prev.classList.toggle('prev', false)
+        }
+        if (nNext) {
+            nNext.classList.toggle('next', true)
+        }
+
+        // 出场动画
+        curr.classList.toggle('ani-out-prev', true)
+        var outHandler = function () {
+            console.log('ani-out end')
+            curr.classList.toggle('ani-out-prev', false)
+            curr.classList.toggle('curr', false)
+            curr.classList.toggle('prev', true)
+            curr.classList.toggle('next', false)
+            curr.removeEventListener('animationend', outHandler)
+        }
+        curr.addEventListener('animationend', outHandler)
+
         next.classList.toggle('curr', true)
+        next.classList.toggle('next', false)
+        next.classList.toggle('prev', false)
+
+        // 入场动画
+        next.classList.toggle('ani-in-next', true)
+        var inHandler = function () {
+            console.log('ani-in end')
+            next.classList.toggle('ani-in-next', false)
+            next.removeEventListener('animationend', inHandler)
+        }
+        next.addEventListener('animationend', inHandler)
 
         // 箭头样式调整
         this.dom.control.right.classList.toggle('disabled', !next.nextElementSibling)
@@ -144,6 +302,7 @@ window.ppt = {
     }
 }
 
+// 绘图相关的环境设置
 let cvs = {
     isMouseDown: false,
     curColor: "green",
@@ -162,7 +321,7 @@ let cvs = {
         this.canvasInfo = canvas.getBoundingClientRect()
         this.ctx = canvas.getContext('2d')
     },
-    clear(){
+    clear() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     },
     canvasMouseDown(e) {
@@ -202,9 +361,9 @@ let cvs = {
         ctx.beginPath();
         // ctx.moveTo(x, y);
         ctx.lineTo(x, y);
-        // ctx.lineWidth = 10;
+        ctx.lineWidth = 10;
 
-        ctx.lineWidth = (this.curLoc.t / this.curLoc.d * 3 > 10 ? 10 : this.curLoc.t / this.curLoc.d * 10);
+        // ctx.lineWidth = (this.curLoc.t / this.curLoc.d * 3 > 10 ? 10 : this.curLoc.t / this.curLoc.d * 10);
         ctx.strokeStyle = this.curColor;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';

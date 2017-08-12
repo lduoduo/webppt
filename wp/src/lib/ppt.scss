@@ -1,15 +1,20 @@
 .ppt {
-    background-color: #222;
+    // background-color: #222;
+    background: #485254 url('../img/bg.png') no-repeat;
+    background-position: left bottom;
+    background-attachment: fixed;
+    background-blend-mode: soft-light;
     color: #efeded;
     width: 100vw;
     height: 100vh;
     overflow: hidden;
-    &.edit{
+    &.edit {
         cursor: url('../img/edit.png'), default;
     }
     .page-wrapper {
         width: 100%;
         height: 100%;
+        perspective: 600px;
     }
     .page {
         width: 100%;
@@ -17,16 +22,32 @@
         display: none;
         font-size: 25px;
         text-align: center;
-        position: relative;
+        // position: relative;
+        // transition: all 0.5s linear;
+        position: absolute;
+        top: 0;
+        left: 0;
         &.curr {
             display: block;
+            &.ani-in-next{
+                transform: rotateY(90deg);
+            }
+            &.ani-in-prev{
+                transform: rotateY(-90deg);
+            }
         }
+    }
+    h1 {
+        font-size: 3em;
     }
     h2 {
         font-size: 2em;
     }
     h3 {
         font-size: 1.5em;
+    }
+    ul {
+        text-align: left;
     }
 }
 
@@ -57,7 +78,7 @@ section {
     box-shadow: 0px 0px 6px rgba(0, 0, 0, 0.3);
     code {
         display: block;
-        padding: 0.5em;
+        padding: 1.5em;
         background: #3F3F3F;
         color: #DCDCDC;
     }
@@ -124,7 +145,7 @@ section {
 }
 
 // 幻灯片标注样式
-canvas.pageEditor{
+canvas.pageEditor {
     width: 100vw;
     height: 100vh;
     position: fixed;
@@ -132,7 +153,69 @@ canvas.pageEditor{
     left: 0;
     z-index: 10;
     display: none;
-    &.active{
+    &.active {
         display: block;
+    }
+}
+
+.ani-in-prev{
+    animation: in-prev 1s  1s linear forwards;
+}
+.ani-in-next{
+    animation: in-next 1s 1s linear forwards;
+}
+.ani-out-prev{
+    animation: out-prev 1s linear forwards;
+}
+.ani-out-next{
+    animation: out-next 1s linear forwards;
+}
+
+// 动画效果展示
+@keyframes in-prev {
+    0% {
+        transform: rotateY(-90deg);
+    }
+    50%{
+        transform: rotateY(-45deg);
+    }
+    100% {
+        transform: rotateY(0deg);
+    }
+}
+
+@keyframes in-next {
+    0% {
+        transform: rotateY(90deg);
+    }
+    50%{
+        transform: rotateY(45deg);
+    }
+    100% {
+        transform: rotateY(0deg);
+    }
+}
+
+@keyframes out-next {
+    0% {
+        transform: rotateY(0);
+    }
+    50%{
+        transform: rotateY(45deg);
+    }
+    100% {
+        transform: rotateY(90deg);
+    }
+}
+
+@keyframes out-prev {
+    0% {
+        transform: rotateY(0);
+    }
+    50%{
+        transform: rotateY(-45deg);
+    }
+    100% {
+        transform: rotateY(-90deg);
     }
 }

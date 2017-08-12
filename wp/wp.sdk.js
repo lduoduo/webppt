@@ -15,12 +15,12 @@ const tool = require('./utils.js');
 
 /** 文件生成后存放的根目录 */
 // const distPath = path.resolve(__dirname, "dist");
-const distPath = path.resolve(__dirname, "../dist/lib");
+const distPath = path.resolve(__dirname, "../dist");
 
 // 获取本地ip
 const ip = tool.getLocalIP()
 /** 服务器上的静态资源公开目录 */
-const publicPath = `//${ip}:8091/static/lib/`;
+const publicPath = `./`;
 
 
 console.info('\n *************************************打包开始************************************ \n');

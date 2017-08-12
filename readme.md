@@ -11,13 +11,13 @@
 4. [源码地址](https://github.com/lduoduo/webppt/blob/master/wp/src/lib/ppt.js)
 
 ### 已实现功能
-[x] - markdown转html
+- [x] - markdown转html
 
-[x] - 转场动画
+- [x] - 转场动画
 
-[x] - 绘图模式
+- [x] - 绘图模式
 
-[x] - 全局预览模式
+- [x] - 全局预览模式
 
 [在线demo](https://ldodo.cc/webppt)
 ![运行效果](http://wx2.sinaimg.cn/mw1024/74d94e2egy1fig9p5w8bkj212h0kzjxm.jpg)

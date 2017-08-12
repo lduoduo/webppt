@@ -83,9 +83,12 @@ window.ppt = {
     // 鼠标事件注册
     initEvent() {
         this.dom.control = $('.controls')
-        this.dom.control.left = $('.controls .left')
-        this.dom.control.right = $('.controls .right')
-        this.dom.control.addEventListener('click', this.clickControl.bind(this))
+        if (this.dom.control) {
+            this.dom.control.left = $('.controls .left')
+            this.dom.control.right = $('.controls .right')
+            this.dom.control.addEventListener('click', this.clickControl.bind(this))
+        }
+
     },
     // 键盘事件注册
     initKeyEvent() {

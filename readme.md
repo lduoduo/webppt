@@ -9,6 +9,7 @@
 ### 起步
 2017-08-11 by duoduo
 
+[在线demo](https://ldodo.cc/webppt)
 ![运行效果](http://wx2.sinaimg.cn/mw1024/74d94e2egy1fig9p5w8bkj212h0kzjxm.jpg)
 
 
@@ -18,8 +19,9 @@
 
 ### 引用标签详解
 
-1. 新幻灯片需要如下包裹头
+1. 普通新幻灯片需要如下包裹头
 ```
+// html
 <div class="page">
     <section>
         <h1>用于首页的大写标题</h1>
@@ -28,6 +30,9 @@
         。。。其他内容
     </section>
 </div>
+
+// js
+ppt.init()
 ```
 
 2. markdown文件插入格式(需要开启webpack编译)

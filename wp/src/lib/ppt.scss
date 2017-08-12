@@ -22,7 +22,7 @@
     h3 {
         font-size: 1.5em;
     }
-    ul {
+    ul,ol {
         text-align: left;
     }
 }
@@ -32,25 +32,36 @@
     width: 100%;
     height: 100%;
     perspective: 600px;
+    overflow-y: hidden;
+    overflow-x: hidden;
+    transition: all 0.5s ease-in-out;
     &.overview {
-        width: auto;
         overflow-x: auto;
+        position: absolute; // width: 10000px;
+        height: 100%;
+        left: 50%;
+        top: 50%;
+        bottom: auto;
+        right: auto; // transform: translate(-50%, -50%) scale(0.3) scale(0.8) translateX(3000px) translateY(0px);
         .page {
             display: inline-block !important;
-            transform: scale(0.2);
             position: relative;
-            width: 30%;
-        }
-        section{
-            &:hover{
-                border-color: #aaa; 
+            border-color: #aaa;
+            margin-left: 20px;
+            cursor: pointer;
+            opacity: 0.5;
+            &:first-child {
+                margin-left: 0
+            }
+            &:hover,&.curr {
+                opacity: 1;
             }
         }
     }
 }
 
 .ppt .page {
-    width: 100%;
+    width: 100vw;
     height: 100%;
     display: none;
     font-size: 25px;
@@ -58,6 +69,10 @@
     position: absolute;
     top: 0;
     left: 0;
+    border-width: 10px;
+    border-style: solid;
+    border-color: transparent;
+    box-sizing: border-box;
     &.curr {
         display: block;
         &.ani-in-next {
@@ -75,9 +90,6 @@ section {
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    border-width: 1px;
-    border-style: solid;
-    border-color: transparent;
 }
 
 // 代码区块样式

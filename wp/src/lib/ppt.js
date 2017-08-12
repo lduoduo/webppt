@@ -29,13 +29,17 @@ function $$(selector) {
 }
 
 window.ppt = {
+    isOverView: false,
     // 回调监听
     listeners: {},
     // 自定义键盘事件
     keyEvents: {},
     // 自定义dom事件
     domEvents: {},
+    // 各种管理dom的缓存
     dom: {},
+    // 幻灯片dom数组
+    doms: [],
     _tpl: {
         arrow: '<a class="edit"></a><a class="arrow left"></a><a class="arrow right"></a>'
     },
@@ -58,9 +62,8 @@ window.ppt = {
     },
     // 初始化环境
     init() {
-        let doms = $$('.ppt .page')
+        let doms = this.doms = $$('.ppt .page')
         doms[0].classList.add('curr')
-        doms[1] && doms[1].classList.add('next')
 
         // 如果ppt张数多余1，显示箭头
         if (doms.length > 1) {
@@ -99,7 +102,16 @@ window.ppt = {
     },
     // 鼠标事件注册
     initEvent() {
-
+        this.dom.wrapper.addEventListener('click', (e) => {
+            if (!this.isOverView) return
+            if (/page/gi.test(e.target.className)) {
+                let curr = $('.page.curr')
+                let target = e.target
+                curr.classList.toggle('curr', false)
+                target.classList.toggle('curr', true)
+                this.toggleOverView()
+            }
+        })
     },
     // 键盘事件注册
     initKeyEvent() {
@@ -150,20 +162,28 @@ window.ppt = {
 
         // 默认事件: 左箭头
         if (keycode === 37) {
-            return this.pagePrev()
+            this.pagePrev()
+            return
         }
         // 默认事件: 右箭头
         if (keycode === 39) {
-            return this.pageNext()
+            this.pageNext()
+            return
         }
         // 默认事件: 开关绘图模式
         if (keycode === 66) {
-            return this.pageEdit()
+            this.pageEdit()
+            return
         }
 
         // 默认事件: 开关全局预览模式
         if (keycode === 79) {
-            return this.pageOverView()
+            return this.toggleOverView()
+        }
+
+        // 默认事件: 全局模式下进入目标页面
+        if (keycode === 13) {
+            return this.toggleOverView()
         }
     },
     // 自定义键盘事件
@@ -196,6 +216,13 @@ window.ppt = {
     },
     // 翻页：目标页索引值, 默认第一页
     page(index = 1) {
+        if (!$(`#page${index}`)) return
+
+        if (this.isOverView) {
+            this.pageOverView(index)
+            return
+        }
+
         let curr = $('.page.curr')
         let id = curr.id.match(/\d+/)[0]
 
@@ -209,15 +236,43 @@ window.ppt = {
         // 正向入场
         return this.animate(target, curr, true)
     },
+    // 预览模式下的翻页
+    pageOverView(index = 1) {
+
+        if (!$(`#page${index}`)) return
+
+        let w = document.body.clientWidth
+
+        // 位移量, 这边的计算公式画了好久的图
+        let d = 0
+        if (this.doms.length % 2 === 0) {
+            d = (this.doms.length / 2 - (index - 1)) * w - w / 2
+        } else {
+            d = (this.doms.length / 2 - (index - 1)) * w
+        }
+
+        this.dom.wrapper.style.transform = `translate(-50%, -50%) scale(0.3) scale(0.8) translateX(${d}px) translateY(0px)`;
+
+        let curr = $('.page.curr')
+        let target = $(`#page${index}`)
+        curr.classList.toggle('curr', false)
+        target.classList.toggle('curr', true)
+    },
     // 翻页：上一页
     pagePrev() {
+
         let curr = $('.page.curr')
         let prev = curr.previousElementSibling
         let next = curr.nextElementSibling
 
         if (!prev) return
 
-        this.animate(prev, curr, false)
+        if (this.isOverView) {
+            let index = prev.id.match(/\d+/)[0]
+            this.pageOverView(index)
+        } else {
+            this.animate(prev, curr, false)
+        }
 
         // 箭头样式调整
         this.dom.control.left.classList.toggle('disabled', !prev.previousElementSibling)
@@ -225,13 +280,19 @@ window.ppt = {
     },
     // 翻页：下一页
     pageNext() {
+
         let curr = $('.page.curr')
         let prev = curr.previousElementSibling
         let next = curr.nextElementSibling
 
         if (!next) return
 
-        this.animate(next, curr, true)
+        if (this.isOverView) {
+            let index = next.id.match(/\d+/)[0]
+            this.pageOverView(index)
+        } else {
+            this.animate(next, curr, true)
+        }
 
         // 箭头样式调整
         this.dom.control.right.classList.toggle('disabled', !next.nextElementSibling)
@@ -249,9 +310,25 @@ window.ppt = {
         // 否则关闭绘图模式
         this.disableDraw()
     },
-    // 全局预览
-    pageOverView(){
-        this.dom.wrapper.classList.toggle('overview')
+    // 开关全局预览
+    toggleOverView() {
+
+        this.isOverView = !this.isOverView
+        this.dom.wrapper.classList.toggle('overview', this.isOverView)
+
+        // 预览模式
+        if (!this.isOverView) {
+            this.dom.wrapper.style.width = "auto"
+            this.dom.wrapper.style.transform = ""
+            return
+        }
+
+        let w = document.body.clientWidth
+        this.dom.wrapper.style.width = this.doms.length * (w + 20) + 'px';
+
+        // 计算父容器位移
+        let index = $('.page.curr').id.match(/\d+/)[0]
+        this.pageOverView(index)
     },
     /**
      * 退场入场动画
@@ -315,9 +392,9 @@ window.ppt = {
         canvas.onmousemove = null
     },
     // url hash变动监听
-    hashChange(e){
+    hashChange(e) {
         console.log(e)
-        let index = location.hash.replace('#','')
+        let index = location.hash.replace('#', '')
         this.page(index)
     }
 }

@@ -1,14 +1,23 @@
 ## :rabbit: webppt 演示框架
 致力于打造一款轻量级web演示ppt框架(单页应用)
 
+### 起步
+2017-08-11 by duoduo
+
 ### 目标核心功能
 1. markdown 转html
 2. 转场动画
 3. 做笔记、画图
 4. [源码地址](https://github.com/lduoduo/webppt/blob/master/wp/src/lib/ppt.js)
 
-### 起步
-2017-08-11 by duoduo
+### 已实现功能
+[x] - markdown转html
+
+[x] - 转场动画
+
+[x] - 绘图模式
+
+[x] - 全局预览模式
 
 [在线demo](https://ldodo.cc/webppt)
 ![运行效果](http://wx2.sinaimg.cn/mw1024/74d94e2egy1fig9p5w8bkj212h0kzjxm.jpg)

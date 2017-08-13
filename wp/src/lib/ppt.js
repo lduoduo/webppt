@@ -86,6 +86,8 @@ window.ppt = {
         let doms = this.doms = $$('.ppt .page')
         doms[0].classList.add('curr')
 
+        this.dom.wrapper = $('.ppt #webppt')
+        
         // 如果ppt张数多余1，显示箭头
         if (doms.length > 1) {
             this.initControl()
@@ -162,7 +164,6 @@ window.ppt = {
     },
     // 初始化控制UI
     initControl() {
-        this.dom.wrapper = $('.ppt #webppt')
 
         let control = this.dom.control = document.createElement('aside')
         control.className = 'ppt-controls'

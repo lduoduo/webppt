@@ -1,11 +1,10 @@
 /**
- * webAudio演示ppt demo
+ * 演示ppt demo
  * created by lduoduo
- * 依赖: webAudio.js
  */
 
 // 引入样式文件
-import './webAudio.scss';
+import './demo.scss';
 
 window.home = {
     init() {

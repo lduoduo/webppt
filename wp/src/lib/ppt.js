@@ -6,7 +6,7 @@
  * 调用步骤:
  * 1. 引入 ppt.js / ppt.css
  * 2. 初始化环境
- *      ppt.init(isTouchDebug) // 是否开启touch端debug模式
+ *      ppt.init(isDebug) // 是否开启debug日志外显模式
  * 3. 插入markdown文件
  *      ppt.markdown({
             'page1.md': require('./markdown/page1.md'),
@@ -56,7 +56,7 @@ window.ppt = {
     // 幻灯片dom数组
     doms: [],
     _tpl: {
-        arrow: '<a class="rect"></a><a class="edit"></a><a class="arrow left"></a><a class="arrow right"></a>',
+        arrow: '<a class="rect"></a><a class="edit"></a><a class="arrow left"></a><a class="arrow right"></a><a class="btn-overview"></a><a class="btn-fullscreen"></a>',
         touch: '<a class="touch-btn">清除日志</a><div class="touch-log">'
     },
     /**
@@ -82,7 +82,7 @@ window.ppt = {
         this[type] && this[type][name] && this[type][name](data)
     },
     // 初始化环境
-    init(isTouchDebug = false) {
+    init(isDebug = false) {
         let doms = this.doms = $$('.ppt .page')
         doms[0].classList.add('curr')
 
@@ -116,11 +116,12 @@ window.ppt = {
             // 回调ready
             this.emit('listeners', 'ready')
 
-            this.initTouch(isTouchDebug)
+            this.initTouch()
+            this.initDebug(isDebug)
         })
     },
     // 移动端开启debug
-    initTouch(isTouchDebug) {
+    initTouch() {
         // alert('1')
         // Mt.alert({
         //     title: 'broswer info',
@@ -134,7 +135,11 @@ window.ppt = {
         touch.init()
         this.dom.control.classList.toggle('touch', true)
 
-        if (!isTouchDebug) return
+    },
+    // 开启debug日志外显
+    initDebug(isDebug) {
+
+        if (!isDebug) return
 
         // 开启
         let that = this
@@ -174,13 +179,15 @@ window.ppt = {
         this.dom.control.right = $('.ppt-controls .right')
         this.dom.control.edit = $('.ppt-controls .edit')
         this.dom.control.rect = $('.ppt-controls .rect')
+        this.dom.control.overview = $('.ppt-controls .btn-overview')
+        this.dom.control.fullscreen = $('.ppt-controls .btn-fullscreen')
         this.dom.control.addEventListener('click', this.clickControl.bind(this))
     },
     // 鼠标事件注册
     initEvent() {
         this.dom.wrapper.addEventListener('click', (e) => {
 
-            console.log(e.target)
+            // console.log(e.target)
             // 图片全屏事件
             if (/img/gi.test(e.target.tagName)) {
                 if (this.isOverView) return
@@ -248,9 +255,13 @@ window.ppt = {
     initProgressBar() {
         let progress = this.dom.progress = document.createElement('p')
         progress.className = "ppt-progress"
-        progress.width = 100
-
         document.body.appendChild(progress)
+        this.updateProgressBar()
+    },
+    // 更新进度条
+    updateProgressBar() {
+        let progress = $('.page.curr').id.match(/\d+/)[0]
+        this.dom.progress.style.width = (progress / this.doms.length) * 100 + '%'
     },
     // 键盘事件回调
     onKeyEvent(pageid, keycode) {
@@ -310,23 +321,30 @@ window.ppt = {
     // 自定义page转场事件
     onPage(pageid, cb) {
         if (!pageid || !cb) return
-        this.domEvents[`${pageid}`] = cb
+        this.domEvents[pageid] = cb
     },
     // 右下角控制事件
     clickControl(e) {
         let dom = e.target
-        if (dom.classList.contains('disabled')) return
-        if (dom.classList.contains('left')) {
+        if (/disabled/gi.test(dom.className)) return
+        if (/left/gi.test(dom.className)) {
             this.pagePrev()
         }
-        if (dom.classList.contains('right')) {
+        if (/right/gi.test(dom.className)) {
             this.pageNext()
         }
-        if (dom.classList.contains('edit')) {
+        if (/edit/gi.test(dom.className)) {
             this.pageEdit('auto')
         }
-        if (dom.classList.contains('rect')) {
+        if (/rect/gi.test(dom.className)) {
             this.pageEdit('rect')
+        }
+        if (/overview/gi.test(dom.className)) {
+            this.toggleOverView()
+        }
+        if (/fullscreen/gi.test(dom.className)) {
+            this.toggleFullScreen(document.body)
+            cvs.updateWidthHeight()
         }
     },
     // 翻页：目标页索引值, 默认第一页
@@ -345,11 +363,11 @@ window.ppt = {
 
         // 逆向入场
         if (index < id) {
-            return this.animate(target, curr, false)
+            return this.pageAnimate(target, curr, false)
         }
 
         // 正向入场
-        return this.animate(target, curr, true)
+        return this.pageAnimate(target, curr, true)
     },
     // 预览模式下的翻页
     pageOverView(index = 1) {
@@ -382,14 +400,13 @@ window.ppt = {
 
         if (!prev) return
 
-
         console.log('pagePrev: ' + curr.id + '-->' + prev.id)
 
         if (this.isOverView) {
             let index = prev.id.match(/\d+/)[0]
             this.pageOverView(index)
         } else {
-            this.animate(prev, curr, false)
+            this.pageAnimate(prev, curr, false)
         }
 
         // 箭头样式调整
@@ -411,7 +428,7 @@ window.ppt = {
             let index = next.id.match(/\d+/)[0]
             this.pageOverView(index)
         } else {
-            this.animate(next, curr, true)
+            this.pageAnimate(next, curr, true)
         }
 
         // 箭头样式调整
@@ -444,8 +461,11 @@ window.ppt = {
         }
 
         if (element.isFullScreen) {
+            this.dom.control.fullscreen.classList.toggle('active', false)
             return this.exitFullscreen(element)
         }
+
+        this.dom.control.fullscreen.classList.toggle('active', true)
         this.requestFullscreen(element)
     },
     requestFullscreen(element) {
@@ -477,6 +497,7 @@ window.ppt = {
 
         this.isOverView = !this.isOverView
         this.dom.wrapper.classList.toggle('overview', this.isOverView)
+        this.dom.control.overview.classList.toggle('active', this.isOverView)
 
         // 预览模式
         if (!this.isOverView) {
@@ -498,7 +519,15 @@ window.ppt = {
      * @param {dom} outDom 退场节点
      * @param {boolean} isForwards 正向还是逆向, 默认正向
      */
-    animate(inDom, outDom, isForwards = true) {
+    pageAnimate(inDom, outDom, isForwards = true) {
+
+        let that = this
+
+        // 全屏的元素状态重置
+        $$('.fullscreen').forEach(item => {
+            item.classList.toggle('fullscreen', false)
+        })
+
 
         let inAnimate = isForwards ? 'ani-in-next' : 'ani-in-prev'
         let outAnimate = isForwards ? 'ani-out-prev' : 'ani-out-next'
@@ -510,6 +539,7 @@ window.ppt = {
             outDom.classList.toggle(outAnimate, false)
             outDom.classList.toggle('curr', false)
             outDom.removeEventListener('animationend', outHandler)
+            that.emit('domEvents', outDom.id, 'out')
         }
         outDom.addEventListener('animationend', outHandler)
 
@@ -520,8 +550,14 @@ window.ppt = {
             console.log('ani-in end')
             inDom.classList.toggle(inAnimate, false)
             inDom.removeEventListener('animationend', inHandler)
+            that.emit('domEvents', inDom.id, 'in')
+
+            // 进度条更新
+            that.updateProgressBar()
+
         }
         inDom.addEventListener('animationend', inHandler)
+
     },
     // 开启绘图模式
     enableDraw(type) {

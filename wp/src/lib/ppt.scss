@@ -144,7 +144,7 @@ section {
     color: #2196F3;
     z-index: 9999;
     &.touch {
-        font-size: 2vmin;
+        font-size: 2.5vmin;
         left: 0;
         right: auto;
         width: 100%;
@@ -203,8 +203,25 @@ section {
             transform: translateX(0.5em) translateY(1.55em) rotate(-45deg);
         }
     }
-    .right {
+    .arrow.right {
         transform: rotate(180deg);
+    }
+    
+    .btn-overview {
+        background-image: url('../img/overview.png');
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: 90%;
+        margin: 0 10px;
+    }
+    .btn-fullscreen {
+        background-image: url('../img/screen-full.png');
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: 90%;
+        &.active {
+            background-image: url('../img/screen-reset.png');
+        }
     }
 }
 
@@ -226,7 +243,7 @@ section {
 .ppt .ppt-progress {
     height: 5px;
     width: 5%;
-    background: green;
+    background: #a35caf;
     transition: all 0.5s ease-in-out;
     position: fixed;
     bottom: 0;
@@ -246,12 +263,14 @@ section {
     }
     .touch-log {
         position: fixed;
+        display: inline-block;
         width: 100%;
         z-index: 2;
         overflow: auto;
         top: 0;
         left: 0;
-        font-size: 2vmin;
+        font-size: 2.5vmin;
+        max-width: 30vmin;
     }
     .info {
         color: #4fc5fb;

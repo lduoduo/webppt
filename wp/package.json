@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
     "app": "webpack-dev-server --config wp.dev.js --open --inline --hot --colors",
-    "dev": "node copy.js && webpack --config wp.dev.js",
+    "dev": "webpack --config wp.dev.js",
     "ppt": "webpack --config wp.ppt.js",
     "sdk": "webpack --config wp.sdk.js"
   },

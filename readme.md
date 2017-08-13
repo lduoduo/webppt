@@ -15,9 +15,13 @@
 - [x] - markdown转html
 - [x] - 转场动画
 - [x] - 绘图模式
-- [x] - 全局预览模式
+- [x] - 全景模式
 - [x] - 图片全屏展示
 - [x] - 浏览器全屏
+- [x] - 进度条更新
+- [x] - touch端切换ppt
+- [x] - touch端全景预览
+- [x] - touch端开启debug日志
 
 [在线demo](https://ldodo.cc/webppt)
 
@@ -45,8 +49,16 @@
     </section>
 </div>
 
-// js
+// js 初始化ppt
 ppt.init()
+// 初始化完毕的回调
+ppt.on('ready', () => {
+    console.log('ready')
+})
+// 特殊幻灯片退场、入场后的回调
+ppt.onPage('pageid', (e) => {
+    console.log('pageid: ' + e)
+})
 ```
 
 3. markdown文件插入格式(需要开启webpack编译)
@@ -59,6 +71,7 @@ ppt.init()
 ppt.markdown({
     'markdown.md': require('./markdown/markdown.md')
 })
+// js 初始化ppt
 ppt.init()
 ```
 
@@ -66,8 +79,8 @@ ppt.init()
 + ppt切换: pc -> 左右箭头切换ppt
 + ppt切换: touch -> 左右滑动切换ppt
 + 绘图模式: pc -> 字母b：进入、退出绘图模式
-+ 全局预览: pc -> 字母o 、Enter键：进入、退出全局预览模式
-+ 浏览器全屏: pc -> F11 进入全屏
++ 全景预览: pc -> 字母o 、Enter键：进入、退出全景预览模式
++ 全屏: pc -> F11 进入全屏
 
 ### 目前问题
 1. mac chrome转场动画不太友好，浏览器重绘问题

@@ -23,8 +23,11 @@ window.home = {
             'page7.md': require('./markdown/page7.md')
         })
         ppt.init(true)
-        ppt.on('ready', function () {
+        ppt.on('ready', () => {
             console.log('ready')
+        })
+        ppt.onPage('page3', (e) => {
+            console.log('page3: ' + e)
         })
     }
 }

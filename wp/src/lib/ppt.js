@@ -747,7 +747,7 @@ window.cvs = {
         last.y += 30
 
         ctx.beginPath();
-        ctx.lineWidth = 10;
+        ctx.lineWidth = 8;
         ctx.strokeStyle = this.curColor;
         ctx.globalAlpha = 0.7;
 

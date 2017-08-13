@@ -22,7 +22,7 @@ window.home = {
             'page6.md': require('./markdown/page6.md'),
             'page7.md': require('./markdown/page7.md')
         })
-        ppt.init(true)
+        ppt.init()
         ppt.on('ready', () => {
             console.log('ready')
         })

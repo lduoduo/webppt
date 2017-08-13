@@ -30,6 +30,14 @@
         height: auto;
         cursor: pointer;
     }
+    a {
+        text-decoration: none;
+        color: #2196F3;
+        transition: color 0.3s linear;
+        &:hover {
+            color: #eaa0ad;
+        }
+    }
 }
 
 .ppt-main {
@@ -112,7 +120,7 @@ section {
 
 // 代码区块样式
 .ppt code {
-    color: #2196F3;
+    color: #a48ff3;
 }
 
 .ppt pre {
@@ -206,7 +214,6 @@ section {
     .arrow.right {
         transform: rotate(180deg);
     }
-    
     .btn-overview {
         background-image: url('../img/overview.png');
         background-position: center;

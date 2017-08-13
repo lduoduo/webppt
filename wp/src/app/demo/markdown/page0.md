@@ -3,7 +3,7 @@
 [项目地址](https://github.com/lduoduo/webppt)
 #### 致力于打造一款轻量级web演示ppt框架(单页应用)
 
-### by duoduo on 2017-08-12
+### by duoduo on 2017-08-13
 
 + tip
     + ppt切换: pc -> 左右箭头切换ppt

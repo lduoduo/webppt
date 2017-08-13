@@ -8,5 +8,5 @@ npm-debug.log
 target/
 test/
 *.bk.*
-ppts/
+ppt/
 wp.ppt.js

@@ -1,6 +1,8 @@
 ## :rabbit: webppt 演示框架
 致力于打造一款轻量级web演示ppt框架(单页应用)
 
+[在线demo](https://ldodo.cc/webppt)
+
 ### 起步
 2017-08-11 by duoduo
 
@@ -23,7 +25,6 @@
 - [x] - touch端全景预览
 - [x] - touch端开启debug日志
 
-[在线demo](https://ldodo.cc/webppt)
 
 ![运行效果](http://wx2.sinaimg.cn/mw1024/74d94e2egy1fig9p5w8bkj212h0kzjxm.jpg)
 

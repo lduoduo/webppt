@@ -1,19 +1,8 @@
-## web混音 - 来自markdown文件
+### 已实现功能
 
-### by dodo
-
-`getUserMedia` 允许网页中的js脚本直接捕捉摄像头、麦克风，代码如下
-```
-let constrant = {audio:true}
-navigator.mediaDevices.getUserMedia(constrant).then(function (stream) {
-    mylocalVideo = stream
-    window.anode = document.createElement('video')
-    anode.srcObject = stream
-    anode.controls = true
-    anode.play()
-    document.body.appendChild(anode)
-}).catch((e) => {
-    let error = `启动摄像头失败: ${e.name}`
-    console.log(e)
-})
-```
+- [x] - markdown转html
+- [x] - 转场动画
+- [x] - 绘图模式
+- [x] - 全局预览模式
+- [x] - 图片全屏展示
+- [x] - 浏览器全屏

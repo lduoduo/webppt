@@ -3,20 +3,35 @@
  * created by lduoduo on 2017-08-11
  * last updated by lduoduo on 2017-08-12
  * 
+ * 调用步骤:
+ * 1. 引入 ppt.js / ppt.css
+ * 2. 初始化环境
+ *      ppt.init(isTouchDebug) // 是否开启touch端debug模式
+ * 3. 插入markdown文件
+ *      ppt.markdown({
+            'page1.md': require('./markdown/page1.md'),
+            'page2.md': require('./markdown/page2.md'),
+            'page3.md': require('./markdown/page3.md')
+        })
  * 说明(目标功能，待完善):
  * 1. 键盘事件:
  *      - 左右箭头切换上一页、下一页
  *      - 字母b: 开启、关闭绘图模式
+ *      - 字母r: 开启、关闭矩形绘图模式
  *      - 字母n: 开启、关闭注释弹框
  *      - 字母o: 开启、关闭全局预览模式
  * 2. 回调注册:
  *      - ppt.on('ready', cb) // ppt准备就绪的回调
  *      - ppt.on('before')
  * 3. 自定义键盘事件注册:
- *      - ppt.onKeydown('pageid','keycode',cb) // 页面id, 键盘code, 回调
+ *      - ppt.onKeyDown('keycode',cb) // 键盘code, 回调(回调里传递参数：当前pageid)
  * 4. 自定义转场事件回调
  *      - ppt.onPage('pageid', cb) // 页面id, 回调(回调里面会传递参数 in / out)
+ * 5. 延迟加载自定义脚本
+ *      - ppt.lazyLoad(url).then(cb)
  */
+
+
 // 引入样式文件
 import './ppt.scss';
 
@@ -41,7 +56,8 @@ window.ppt = {
     // 幻灯片dom数组
     doms: [],
     _tpl: {
-        arrow: '<a class="edit"></a><a class="arrow left"></a><a class="arrow right"></a>'
+        arrow: '<a class="rect"></a><a class="edit"></a><a class="arrow left"></a><a class="arrow right"></a>',
+        touch: '<a class="touch-btn">清除日志</a><div class="touch-log">'
     },
     /**
      * 嵌入markdown内容
@@ -55,13 +71,18 @@ window.ppt = {
             $(selector).innerHTML = `<section>${obj[i]}</section>`
         }
     },
+    // 事件注册
+    on(name, cb) {
+        if (!name || !cb || cb.constructor !== Function) return
+        this.listeners[name] = cb
+    },
     // 发送回调
     emit(type, name, data) {
         type = type || 'listeners'
         this[type] && this[type][name] && this[type][name](data)
     },
     // 初始化环境
-    init() {
+    init(isTouchDebug = false) {
         let doms = this.doms = $$('.ppt .page')
         doms[0].classList.add('curr')
 
@@ -84,8 +105,60 @@ window.ppt = {
         // 监听hash变动
         window.onhashchange = this.hashChange.bind(this);
 
-        // 回调ready
-        this.emit('listeners', 'ready')
+        this.lazyLoad([
+            'https://ldodo.cc/static/lib/platform.js',
+            'https://ldodo.cc/static/lib/fastclick.min.js'
+        ]).then(() => {
+
+            FastClick.attach(document.body)
+            // 回调ready
+            this.emit('listeners', 'ready')
+
+            this.initTouch(isTouchDebug)
+        })
+    },
+    // 移动端开启debug
+    initTouch(isTouchDebug) {
+        // alert('1')
+        // Mt.alert({
+        //     title: 'broswer info',
+        //     msg: JSON.stringify(platform),
+        //     confirmBtnMsg: 'ok'
+        // })
+
+        if (!/(android|ios)/gi.test(platform.os.family)) return
+
+        // 兼容移动端
+        touch.init()
+        this.dom.control.classList.toggle('touch', true)
+
+        if (!isTouchDebug) return
+
+        // 开启
+        let that = this
+        var dom = document.createElement('div')
+        dom.className = 'touch-debug'
+        dom.innerHTML = this._tpl.touch
+        document.body.appendChild(dom)
+        var logDiv = $('.ppt .touch-debug .touch-log')
+        var btn = $('.ppt .touch-debug .touch-btn')
+        btn.addEventListener('click', () => {
+            logDiv.innerHTML = ""
+        })
+        window.console = {
+            log(data, type) {
+                var p = document.createElement('p')
+                p.className = type || 'info'
+                p.textContent = JSON.stringify(data)
+                logDiv.appendChild(p)
+            },
+            error(data) {
+                this.log(data, 'error')
+            },
+            warn(data) {
+                this.log(data, 'warn')
+            }
+        }
     },
     // 初始化控制UI
     initControl() {
@@ -98,11 +171,23 @@ window.ppt = {
 
         this.dom.control.left = $('.ppt-controls .left')
         this.dom.control.right = $('.ppt-controls .right')
+        this.dom.control.edit = $('.ppt-controls .edit')
+        this.dom.control.rect = $('.ppt-controls .rect')
         this.dom.control.addEventListener('click', this.clickControl.bind(this))
     },
     // 鼠标事件注册
     initEvent() {
         this.dom.wrapper.addEventListener('click', (e) => {
+
+            console.log(e.target)
+            // 图片全屏事件
+            if (/img/gi.test(e.target.tagName)) {
+                if (this.isOverView) return
+                if (cvs.isEnabled) return
+                this.toggleFullScreen(e.target)
+                return
+            }
+
             if (!this.isOverView) return
             if (/page/gi.test(e.target.className)) {
                 let curr = $('.page.curr')
@@ -111,6 +196,7 @@ window.ppt = {
                 target.classList.toggle('curr', true)
                 this.toggleOverView()
             }
+
         })
     },
     // 键盘事件注册
@@ -143,6 +229,19 @@ window.ppt = {
         document.body.appendChild(canvas)
 
         cvs.init(canvas)
+        cvs.on('arrow', (key) => {
+            if (key < 0) {
+                this.pageNext()
+            }
+            if (key > 0) {
+                this.pagePrev()
+            }
+            // Mt.alert({
+            //     title: 'arrow',
+            //     msg: key,
+            //     confirmBtnMsg: '好'
+            // })
+        })
     },
     // 初始化进度条
     initProgressBar() {
@@ -155,9 +254,8 @@ window.ppt = {
     // 键盘事件回调
     onKeyEvent(pageid, keycode) {
         // 如果有自定义事件, 优先自定义事件
-        let userEvent = `${pageid}_${keycode}`
-        if (this.keyEvents[userEvent]) {
-            return this.emit('keyEvents', userEvent);
+        if (this.keyEvents[keycode]) {
+            return this.emit('keyEvents', keycode, pageid);
         }
 
         // 默认事件: 左箭头
@@ -172,7 +270,13 @@ window.ppt = {
         }
         // 默认事件: 开关绘图模式
         if (keycode === 66) {
-            this.pageEdit()
+            this.pageEdit('auto')
+            return
+        }
+
+        // 默认事件: 开关矩形绘图模式
+        if (keycode === 82) {
+            this.pageEdit('rect')
             return
         }
 
@@ -185,9 +289,16 @@ window.ppt = {
         if (keycode === 13) {
             return this.toggleOverView()
         }
+
+        // 默认事件: 全屏事件
+        if (keycode === 122) {
+            this.toggleFullScreen(document.body)
+            cvs.updateWidthHeight()
+            return
+        }
     },
     // 自定义键盘事件
-    onKeydown(pageid, keycode, cb) {
+    onKeyDown(pageid, keycode, cb) {
         if (!pageid || !keycode || !cb) return
         this.keyEvents[`${pageid}_${keycode}`] = cb
     },
@@ -211,7 +322,10 @@ window.ppt = {
             this.pageNext()
         }
         if (dom.classList.contains('edit')) {
-            this.pageEdit()
+            this.pageEdit('auto')
+        }
+        if (dom.classList.contains('rect')) {
+            this.pageEdit('rect')
         }
     },
     // 翻页：目标页索引值, 默认第一页
@@ -267,6 +381,9 @@ window.ppt = {
 
         if (!prev) return
 
+
+        console.log('pagePrev: ' + curr.id + '-->' + prev.id)
+
         if (this.isOverView) {
             let index = prev.id.match(/\d+/)[0]
             this.pageOverView(index)
@@ -287,6 +404,8 @@ window.ppt = {
 
         if (!next) return
 
+        console.warn('pageNext: ' + curr.id + '-->' + next.id)
+
         if (this.isOverView) {
             let index = next.id.match(/\d+/)[0]
             this.pageOverView(index)
@@ -299,16 +418,58 @@ window.ppt = {
         this.dom.control.left.classList.toggle('disabled', false)
     },
     // 页面绘图
-    pageEdit() {
-        this.dom.canvas.classList.toggle('active')
-        document.body.classList.toggle('edit')
-        // 开启绘图模式
-        if (this.dom.canvas.classList.contains('active')) {
-            return this.enableDraw()
+    pageEdit(type) {
+        let target = this.dom.control.edit
+        if (type === 'rect') {
+            target = this.dom.control.rect
+        }
+
+        this.isCanvasEnable = target.classList.toggle('active')
+
+        if (this.isCanvasEnable) {
+            document.body.classList.toggle('edit', true)
+            return this.enableDraw(type)
         }
 
         // 否则关闭绘图模式
         this.disableDraw()
+        document.body.classList.toggle('edit', false)
+    },
+    // 开关全屏模式
+    toggleFullScreen(element) {
+        // 普通元素
+        if (element !== document.body) {
+            return element.classList.toggle('fullscreen')
+        }
+
+        if (element.isFullScreen) {
+            return this.exitFullscreen(element)
+        }
+        this.requestFullscreen(element)
+    },
+    requestFullscreen(element) {
+        element.isFullScreen = true
+        if (element.requestFullscreen) {
+            element.requestFullscreen();
+        } else if (element.mozRequestFullScreen) {
+            element.mozRequestFullScreen();
+        } else if (element.msRequestFullscreen) {
+            element.msRequestFullscreen();
+        } else if (element.webkitRequestFullscreen) {
+            element.webkitRequestFullScreen();
+        }
+    },
+    exitFullscreen(element) {
+        element.isFullScreen = false
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        }
     },
     // 开关全局预览
     toggleOverView() {
@@ -324,7 +485,7 @@ window.ppt = {
         }
 
         let w = document.body.clientWidth
-        this.dom.wrapper.style.width = this.doms.length * (w + 20) + 'px';
+        this.dom.wrapper.style.width = $$('.ppt .page').length * (w + 30) + 'px';
 
         // 计算父容器位移
         let index = $('.page.curr').id.match(/\d+/)[0]
@@ -362,8 +523,113 @@ window.ppt = {
         inDom.addEventListener('animationend', inHandler)
     },
     // 开启绘图模式
-    enableDraw() {
-        let canvas = this.dom.canvas
+    enableDraw(type) {
+        cvs.updateType(type)
+        cvs.enable()
+    },
+    // 关闭绘图模式
+    disableDraw() {
+        cvs.disable()
+        cvs.clear()
+    },
+    // url hash变动监听
+    hashChange(e) {
+        console.log(e)
+        let index = location.hash.replace('#', '')
+        this.page(index)
+    },
+    /**
+     * 延迟加载函数 js / css文件
+     * 
+     * @param {string} url 目标地址, 可以是单独的地址, 也可以是一个地址的数组
+     */
+    lazyLoad(url) {
+        if (!url) return
+        if (!/(String|Array)/.test(url.constructor)) return
+
+        url = url.constructor === String ? [url] : url
+        let promises = []
+
+        url.forEach(item => {
+            let dom
+            // 加载css
+            if (/\.css$/.test(item)) {
+                dom = document.createElement('style')
+                dom.href = item
+            }
+            if (/\.js$/.test(item)) {
+                dom = document.createElement('script')
+                dom.src = item
+            }
+
+            promises.push(new Promise((resolve, reject) => {
+                dom.onload = resolve
+                document.body.appendChild(dom)
+            }))
+        })
+
+        return Promise.all(promises)
+    }
+}
+
+// 绘图相关的环境设置
+window.cvs = {
+    // 回调监听
+    listeners: {},
+    canvas: null,
+    ctx: null,
+    // 是否已开启
+    isEnabled: false,
+    isMouseDown: false,
+    curColor: "#ff5722",
+    curLoc: {
+        x: 0,
+        y: 0
+    },
+    lastLoc: {
+        x: 0,
+        y: 0
+    },
+    // canvas绘制类型，是矩形还是自由形状
+    type: 'auto',
+    init(canvas) {
+        this.canvas = canvas
+        canvas.width = document.body.clientWidth
+        canvas.height = document.body.clientHeight
+        this.canvasInfo = canvas.getBoundingClientRect()
+        this.ctx = canvas.getContext('2d')
+    },
+    on(name, cb) {
+        if (!name || !cb || cb.constructor !== Function) return
+        this.listeners[name] = cb
+    },
+    clear() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    },
+    updateType(type) {
+        this.type = type || 'auto'
+    },
+    // 根据窗口大小更新canvas大小
+    updateWidthHeight() {
+        let canvas = this.canvas
+        if (document.body.isFullScreen) {
+            canvas.width = window.screen.availWidth
+            canvas.height = window.screen.availHeight
+        } else {
+            canvas.width = document.body.clientWidth
+            canvas.height = document.body.clientHeight
+        }
+
+        console.warn('canvas reset: width ->' + canvas.width + ' height ->' + canvas.height)
+    },
+    // 开启
+    enable() {
+        this.isEnabled = true
+        let canvas = this.canvas
+        canvas.classList.toggle('active', true)
+
+        // 不要重复绑定事件
+        if (canvas.onmousedown) return
 
         canvas.onmousedown = function (e) {
             cvs.canvasMouseDown(e);
@@ -382,54 +648,40 @@ window.ppt = {
             cvs.canvasMouseMove(e);
         };
     },
-    // 关闭绘图模式
-    disableDraw() {
-        let canvas = this.dom.canvas
-        cvs.clear()
+    // 关闭
+    disable() {
+        this.isEnabled = false
+        let canvas = this.canvas
+        canvas.classList.toggle('active', false)
         canvas.onmousedown = null
         canvas.onmouseup = null
         canvas.onmouseout = null
         canvas.onmousemove = null
     },
-    // url hash变动监听
-    hashChange(e) {
-        console.log(e)
-        let index = location.hash.replace('#', '')
-        this.page(index)
-    }
-}
-
-// 绘图相关的环境设置
-let cvs = {
-    isMouseDown: false,
-    curColor: "green",
-    lastTime: null,
-    curTime: null,
-    curLoc: {
-        x: 0,
-        y: 0
-    },
-    lastLoc: {
-        x: 0,
-        y: 0
-    },
-    init(canvas) {
-        this.canvas = canvas
-        this.canvasInfo = canvas.getBoundingClientRect()
-        this.ctx = canvas.getContext('2d')
-    },
-    clear() {
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    },
     canvasMouseDown(e) {
         e.preventDefault();
         console.log('mouse down', e.clientX, e.clientY);
+        this.updateLastLoc(e.clientX, e.clientY)
+    },
+    // 不绘图时候的touch方向
+    arrow(key) {
+        if (this.isCanvasEnable) return
+        this.listeners['arrow'] && this.listeners['arrow'](key)
+    },
+    // 更新准备位置：绘图前的准备工作
+    updateLastLoc(x, y) {
         this.isMouseDown = true;
         this.lastLoc = {
-            x: e.clientX,
-            y: e.clientY
+            x,
+            y
         };
-        this.lastTime = (new Date()).getTime();
+    },
+    // 更新当前位置
+    updateCurrLoc(x, y) {
+        this.curLoc = {
+            x,
+            y
+        };
     },
     canvasMouseUp(e) {
         e.preventDefault();
@@ -441,33 +693,43 @@ let cvs = {
             return;
         }
         console.log('mouse move', e.clientX, e.clientY);
-        this.curLoc = {
-            x: e.clientX,
-            y: e.clientY
-        };
-        this.curTime = (new Date()).getTime();
+        this.updateCurrLoc(e.clientX, e.clientY)
         this.draw();
     },
     draw() {
-        this.curLoc.t = this.curTime - this.lastTime;
-        this.curLoc.d = this.getDistance(this.lastLoc, this.curLoc);
+        if (!this.isEnabled) return
+        if (!this.isMouseDown) return
+
+        // 原始位置
+        let last = this.getPosition(this.lastLoc.x, this.lastLoc.y);
+        // 新的位置
         let { x, y } = this.getPosition(this.curLoc.x, this.curLoc.y);
+
         let ctx = this.ctx
-        y = y + 100;
-        console.log('start x:' + x + ' y:' + y);
+        y += 30;
+        last.y += 30
+
         ctx.beginPath();
+        ctx.lineWidth = 10;
+        ctx.strokeStyle = this.curColor;
+        ctx.globalAlpha = 0.7;
+
+        // 开始绘制
+        if (this.type === 'rect') {
+            console.log('to x:' + x + ' y:' + y);
+            this.clear()
+            return ctx.strokeRect(last.x, last.y, x - last.x, y - last.y);
+        }
+
+        console.log('start x:' + x + ' y:' + y);
         // ctx.moveTo(x, y);
         ctx.lineTo(x, y);
-        ctx.lineWidth = 10;
 
-        // ctx.lineWidth = (this.curLoc.t / this.curLoc.d * 3 > 10 ? 10 : this.curLoc.t / this.curLoc.d * 10);
-        ctx.strokeStyle = this.curColor;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
         ctx.stroke();
 
         this.lastLoc = this.curLoc;
-        this.lastTime = this.curTime;
     },
     getPosition(x, y) {
         x = Math.floor(x - this.canvasInfo.left);
@@ -480,5 +742,57 @@ let cvs = {
     getDistance(loc1, loc2) {
         var data = Math.sqrt((loc2.x - loc1.x) * (loc2.x - loc1.x) + (loc2.y - loc1.y) * (loc2.y - loc1.y));
         return data;
+    }
+}
+
+// 移动端touch事件
+window.touch = {
+    isMouseDown: false,
+    init() {
+        document.addEventListener("touchstart", this.touchStart.bind(this), false);
+        document.addEventListener("touchmove", this.touchMove.bind(this), false);
+        document.addEventListener("touchend", this.touchEnd.bind(this), false);
+    },
+    touchStart(e) {
+        e.preventDefault();
+        var touches = event.touches[0];
+        this.isMouseDown = true
+        this.lastLoc = {
+            x: touches.pageX,
+            y: touches.pageY
+        }
+        cvs.updateLastLoc(touches.pageX, touches.pageY)
+    },
+    touchMove(e) {
+        e.preventDefault();
+        var touches = event.touches[0];
+        this.currLoc = {
+            x: touches.pageX,
+            y: touches.pageY
+        }
+        if (!this.isMouseDown) return
+
+        // 绘图模式
+        if (cvs.isEnabled) {
+            cvs.updateCurrLoc(touches.pageX, touches.pageY)
+            cvs.draw()
+            return
+        }
+
+        // 翻页模式, 需要防抖
+        if (this.pageTimer) {
+            console.warn('销毁 翻页 timer')
+            clearTimeout(this.pageTimer)
+        }
+        this.pageTimer = setTimeout(() => {
+            this.pageTimer = null
+            console.log('------ 执行 翻页 ------')
+            cvs.arrow(this.currLoc.x - this.lastLoc.x)
+        }, 100)
+    },
+    touchEnd(e) {
+        e.preventDefault();
+        this.isMouseDown = false
+        // var result = this.curLoc.x - this.lastLoc.x
     }
 }

@@ -8,18 +8,19 @@
 1. markdown 转html
 2. 转场动画
 3. 做笔记、画图
-4. [源码地址](https://github.com/lduoduo/webppt/blob/master/wp/src/lib/ppt.js)
+4. 兼容移动端
+5. [源码地址](https://github.com/lduoduo/webppt/blob/master/wp/src/lib/ppt.js)
 
 ### 已实现功能
 - [x] - markdown转html
-
 - [x] - 转场动画
-
 - [x] - 绘图模式
-
 - [x] - 全局预览模式
+- [x] - 图片全屏展示
+- [x] - 浏览器全屏
 
 [在线demo](https://ldodo.cc/webppt)
+
 ![运行效果](http://wx2.sinaimg.cn/mw1024/74d94e2egy1fig9p5w8bkj212h0kzjxm.jpg)
 
 
@@ -63,3 +64,11 @@ ppt.init()
 
 ### 目前问题
 1. mac chrome转场动画不太友好，浏览器重绘问题
+2. canvas 绘图位置不太准确
+
+### 快捷键说明
++ ppt切换: pc -> 左右箭头切换ppt
++ ppt切换: touch -> 左右滑动切换ppt
++ 绘图模式: pc -> 字母b：进入、退出绘图模式
++ 全局预览: pc -> 字母o 、Enter键：进入、退出全局预览模式
++ 浏览器全屏: pc -> F11 进入全屏

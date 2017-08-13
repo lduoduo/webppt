@@ -56,7 +56,7 @@ window.ppt = {
     // 幻灯片dom数组
     doms: [],
     _tpl: {
-        arrow: '<a class="rect"></a><a class="edit"></a><a class="arrow left"></a><a class="arrow right"></a><a class="btn-overview"></a><a class="btn-fullscreen"></a>',
+        arrow: '<a class="rect"></a><a class="edit"></a><a class="arrow left hide"></a><a class="arrow right hide"></a><a class="btn-overview"></a><a class="btn-fullscreen"></a>',
         touch: '<a class="touch-btn">清除日志</a><div class="touch-log">'
     },
     /**
@@ -88,16 +88,12 @@ window.ppt = {
 
         this.dom.wrapper = $('.ppt #webppt')
 
-        // 如果ppt张数多余1，显示箭头
-        if (doms.length > 1) {
-            this.initControl()
-        }
-
         // 给每个page加个id
         doms.forEach((item, index) => {
             item.id = `page${index + 1}`
         })
 
+        this.initControl()
         this.initEvent()
         this.initKeyEvent()
         this.initPageEvent()
@@ -181,6 +177,12 @@ window.ppt = {
         this.dom.control.rect = $('.ppt-controls .rect')
         this.dom.control.overview = $('.ppt-controls .btn-overview')
         this.dom.control.fullscreen = $('.ppt-controls .btn-fullscreen')
+
+        // 如果ppt张数多余1，显示箭头
+        if (this.doms.length > 1) {
+            this.dom.control.left.classList.toggle('hide', false)
+            this.dom.control.right.classList.toggle('hide', false)
+        }
         this.dom.control.addEventListener('click', this.clickControl.bind(this))
     },
     // 鼠标事件注册

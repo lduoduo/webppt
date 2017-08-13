@@ -1,4 +1,10 @@
 /* 清空浏览器默认样式*/
-body, p{
+
+body,
+p {
     margin: 0;
+}
+
+.hide {
+    display: none!important;
 }

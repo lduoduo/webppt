@@ -1,7 +1,7 @@
 /**
  * ppt演示框架源码
  * created by lduoduo on 2017-08-11
- * last updated by lduoduo on 2017-08-12
+ * last updated by lduoduo on 2017-08-13
  * 
  * 调用步骤:
  * 1. 引入 ppt.js / ppt.css
@@ -87,7 +87,7 @@ window.ppt = {
         doms[0].classList.add('curr')
 
         this.dom.wrapper = $('.ppt #webppt')
-        
+
         // 如果ppt张数多余1，显示箭头
         if (doms.length > 1) {
             this.initControl()

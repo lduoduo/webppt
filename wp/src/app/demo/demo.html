@@ -5,9 +5,6 @@
     <meta charset="UTF-8">
     <title>测试demo</title>
     <link rel="stylesheet" href="/webppt/ppt.css">
-
-    <!--测试用-->
-    <link rel="stylesheet" href="https://ldodo.cc/static/lib/sweetalert.min.css">
 </head>
 
 <!--body上加ppt类名-->
@@ -38,7 +35,6 @@
     </div>
 
     <!--测试用-->
-    <script src="https://ldodo.cc/static/lib/sweetalert.min.js"></script>
     <script>
         window.onerror = function (errorMessage, source, lineno, colno, error) {
             var info = "错误信息：" + errorMessage + "\n" +
@@ -48,29 +44,6 @@
                 "错误详情：" + error + "\n";
             console.error(JSON.stringify(info));
         }
-        // 弹窗插件配置, 后期删除!!
-        window.Mt = {
-            alert: function (option) {
-                //type, title, msg, btnMsg, cb, isLoading
-                swal({
-                    title: option.title || '',
-                    text: option.msg,
-                    type: option.type,
-                    showConfirmButton: !!option.confirmBtnMsg,
-                    showCancelButton: !!option.cancelBtnMsg,
-                    cancelButtonText: option.cancelBtnMsg || "在犹豫一下",
-                    confirmButtonColor: "#DD6B55",
-                    confirmButtonText: option.confirmBtnMsg || "好哒",
-                    showLoaderOnConfirm: option.isLoading,
-                    timer: option.timer,
-                    closeOnConfirm: false,
-                    html: option.html
-                }, option.cb);
-            },
-            close: function () {
-                swal.close();
-            }
-        };
     </script>
     <script src="/webppt/ppt.js"></script>
 </body>

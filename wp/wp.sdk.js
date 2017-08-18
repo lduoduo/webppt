@@ -8,7 +8,6 @@ const webpack = require('webpack');
 var CleanPlugin = require('clean-webpack-plugin');
 
 const ExtractTextPlugin = require("extract-text-webpack-plugin");
-const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 /** 引入工具 */
 const tool = require('./utils.js');
@@ -22,6 +21,10 @@ const ip = tool.getLocalIP()
 /** 服务器上的静态资源公开目录 */
 const publicPath = `./`;
 
+
+// 环境常量
+const NODE_ENV_PRODUCTION = 'prd'
+const NODE_ENV_DEVELOPMENT = 'dev'
 
 console.info('\n *************************************打包开始************************************ \n');
 
@@ -80,6 +83,7 @@ var config = {
                         {
                             loader: 'css-loader',
                             options: {
+                                minimize: true,
                                 // modules: true,
                                 importLoaders: 1,
                                 // localIdentName: '[local]_[hash:base64:5]',
@@ -122,6 +126,17 @@ var config = {
         fs: 'empty'
     },
     plugins: [
+        /**
+         * Webpack 3 中提供了如下的插件来允许开发者启用作用域提升特性来避免这种额外的性能损耗
+         * 使用 Scope Hositing 特性
+         * https://webpack.js.org/plugins/module-concatenation-plugin/
+         */
+        new webpack.optimize.ModuleConcatenationPlugin(),
+        /**
+         * 避免发出包含错误的模块
+         * https://webpack.js.org/plugins/no-emit-on-errors-plugin/
+         */
+        new webpack.NoEmitOnErrorsPlugin(),
         new webpack.optimize.OccurrenceOrderPlugin(),
         new ExtractTextPlugin({
             filename: "[name].css",
@@ -129,6 +144,7 @@ var config = {
             allChunks: true,
         }),
         // https://github.com/mishoo/UglifyJS2/issues/1246#issuecomment-237535244
+        //压缩代码
         // new webpack.optimize.UglifyJsPlugin({
         //     compress: {
         //         warnings: false,
@@ -145,6 +161,18 @@ var config = {
         // new webpack.optimize.DedupePlugin(),
     ],
     watch: true
+}
+
+if(process.env.NODE_ENV === NODE_ENV_PRODUCTION){
+    // 压缩代码
+    let tmp = new webpack.optimize.UglifyJsPlugin({    
+        compress: {
+            warnings: false
+        },
+        //排除关键字
+        except: ['$super', '$', 'import', 'exports', 'require']    
+    })
+    config.plugins.push(tmp)
 }
 
 module.exports = config;

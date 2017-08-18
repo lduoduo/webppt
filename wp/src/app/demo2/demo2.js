@@ -4,7 +4,7 @@
  */
 
 // 引入样式文件
-import './demo.scss';
+import './demo2.scss';
 
 window.home = {
     init() {
@@ -14,13 +14,7 @@ window.home = {
         // 嵌入markdown
         ppt.markdown({
             'page0.md': require('./markdown/page0.md'),
-            'page1.md': require('./markdown/page1.md'),
-            'page2.md': require('./markdown/page2.md'),
-            'page3.md': require('./markdown/page3.md'),
-            'page4.md': require('./markdown/page4.md'),
-            'page5.md': require('./markdown/page5.md'),
-            'page6.md': require('./markdown/page6.md'),
-            'page7.md': require('./markdown/page7.md')
+            'page1.md': require('./markdown/page1.md')
         })
         ppt.init()
         ppt.on('ready', () => {
@@ -28,8 +22,8 @@ window.home = {
             if (!/(android|ios)/gi.test(platform.os.family)) return
             ppt.initDebug(true)
         })
-        ppt.onPage('page3', (e) => {
-            console.log('page3: ' + e)
+        ppt.onPage('page2', (e) => {
+            console.log('page2: ' + e)
         })
     }
 }

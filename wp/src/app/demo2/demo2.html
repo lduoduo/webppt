@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>webppt 演示demo</title>
+    <link rel="stylesheet" href="/webppt/ppt.css">
+</head>
+
+<!--body上加ppt类名-->
+<body class="ppt">
+    <!--必要, 外围包裹, 全屏需要 -->
+    <div class="ppt-main">
+        <!--必要, 内围包裹-->
+        <div class="page-wrapper" id="webppt">
+            <div class="page" name="markdown" data-template="page0.md"></div>
+            <div class="page" name="markdown" data-template="page1.md"></div>
+        </div>
+
+        <!-- 作者自己的github，开发者可以去掉 -->
+        <div class="footer">
+            <a href="//github.com/lduoduo" class="foot">
+            <span class="logo"></span>
+        </a>
+        </div>
+    </div>
+
+    <!--测试用-->
+    <script>
+        window.onerror = function (errorMessage, source, lineno, colno, error) {
+            var info = "错误信息：" + errorMessage + "\n" +
+                "出错文件：" + source + "\n " +
+                "出错行号：" + lineno + "\n" +
+                "出错列号：" + colno + "\n" +
+                "错误详情：" + error + "\n";
+            console.error(JSON.stringify(info));
+        }
+    </script>
+    <script src="/webppt/ppt.js"></script>
+</body>
+
+</html>

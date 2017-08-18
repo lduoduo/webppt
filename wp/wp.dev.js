@@ -75,14 +75,6 @@ var config = {
             },
             {
                 test: /\.scss$/,
-                // use: ExtractTextPlugin.extract({
-                //     fallback: 'style-loader',
-                //     //resolve-url-loader may be chained before sass-loader if necessary
-                //     use: ['css-loader', 'less-loader']
-                // }),
-
-
-
                 // include: path.resolve(__dirname, 'src/common'),
                 // use: 'style!css!postcss?parser=postcss-scss',
                 // test: /\.(less|css)$/,
@@ -190,6 +182,17 @@ var config = {
         fs: 'empty'
     },
     plugins: [
+        /**
+         * Webpack 3 中提供了如下的插件来允许开发者启用作用域提升特性来避免这种额外的性能损耗
+         * 使用 Scope Hositing 特性
+         * https://webpack.js.org/plugins/module-concatenation-plugin/
+         */
+        new webpack.optimize.ModuleConcatenationPlugin(),
+        /**
+         * 避免发出包含错误的模块
+         * https://webpack.js.org/plugins/no-emit-on-errors-plugin/
+         */
+        new webpack.NoEmitOnErrorsPlugin(),
         /**
          * 在 output 的文件里，如果有任意模块加载了两次或更多（通过 minChunks 设置该值），
          * 它就会被打包进一个叫 commons.js 的文件里，后面你就可以在客户端缓存这个文件了。
@@ -329,13 +332,15 @@ pages.forEach(function (pathname) {
 
     // console.log('foldername/config.entry ---- >%s -- %s',foldername,JSON.stringify(config.entry));
     // 这里对foldername做个处理
-    let foldername_1 = foldername.substring(0, foldername.lastIndexOf('/'))
-    if (foldername_1 in config.entry) {
+    // let foldername_1 = foldername.substring(0, foldername.lastIndexOf('/'))
+    // 这里只插入每个html同文件夹下的js文件，而不必全部引用
+    if (foldername in config.entry) {
         conf.favicon = path.resolve(__dirname, 'src/img/myico.ico');
         //js插入的位置，true/'head'/'body'/false
         conf.inject = 'body';
-        conf.chunks = ['commons', foldername, 'webpack-dev-server'];
-        // conf.hash = true;
+        console.log('filename -> foldername:', foldername)
+        // 需要插入的chunk名
+        conf.chunks = ['common', foldername];
     }
 
     config.plugins.push(new HtmlWebpackPlugin(conf));

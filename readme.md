@@ -28,11 +28,43 @@
 
 ![运行效果](http://wx2.sinaimg.cn/mw1024/74d94e2egy1fig9p5w8bkj212h0kzjxm.jpg)
 
+### 目录结构 - 工具说明
++ webpack3 打包目录
++ ppt.js源文件目录[wp-ppt](https://github.com/lduoduo/webppt/tree/master/wp/src/lib)
++ demo源文件[wp-demo](https://github.com/lduoduo/webppt/tree/master/wp/src/app)
++ 新ppt工程请在上面的目录下新建文件夹，存放业务js / scss / less
++ 具体目录说明如下
+
+```
+webppt
+├── readme.md
+├── package.json
+├── .gitignore
+└── wp
+    └── wp.dev.js // build demo
+    └── wp.sdk.js // build ppt.js / ppt.css
+    └── utils.js // tools
+    └── src
+        └── app // demo folder
+            └── demo 
+        └── img // images
+        └── lib // source code of ppt.js
+        └── index.html // home page
+```
 
 ### 开发步骤
 1. 引入脚本 `ppt.js`, 样式 `ppt.css`
 2. 按照下面的流程引入标签
 3. 静态文件托管服务: node server.js
+4. 开发命令
+```
+npm run dev
+// 开启demo编译
+npm run sdk
+// 开启开发模式ppt.js编译
+npm run sdk-build
+// 开启生产模式ppt.js编译
+```
 
 ### 引用标签详解
 
